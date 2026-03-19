@@ -1,0 +1,19 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+  command = "sed -i 's|%%SUPABASE_URL%%|'\"$SUPABASE_URL\"'|g; s|%%SUPABASE_ANON_KEY%%|'\"$SUPABASE_ANON_KEY\"'|g' app.js && sed -i 's|%%ACCESS_PWD%%|'\"$ACCESS_PWD\"'|g' index.html"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/app.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[redirects]]
+  from = "/api/claude"
+  to = "/.netlify/functions/claude-proxy"
+  status = 200
