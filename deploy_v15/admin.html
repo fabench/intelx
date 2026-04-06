@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>intelX — User Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;font-size:13px;background:#f4f6f8;color:#0d1f35;min-height:100vh;padding:24px}
+.wrap{max-width:640px;margin:0 auto}
+.card{background:#fff;border:1px solid #dde2e8;border-radius:10px;padding:28px 32px;margin-bottom:16px}
+.logo{font-size:18px;font-weight:800;color:#0d1f35;margin-bottom:2px}.logo span{color:#1a8aab}
+.sub{font-size:11px;color:#8a96a3;margin-bottom:0}
+h2{font-size:13px;font-weight:700;color:#0d1f35;margin-bottom:4px}
+p{font-size:12px;color:#4a5a6b;line-height:1.6;margin-bottom:10px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;font-weight:600;color:#4a5a6b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em}
+.field input{width:100%;padding:8px 10px;font-size:12px;font-family:'Inter',sans-serif;border:1px solid #c8d0da;border-radius:6px;outline:none;background:#f8f9fa;color:#0d1f35;transition:border-color .15s}
+.field input:focus{border-color:#1a8aab;background:#fff}
+.row{display:flex;gap:8px}.row .field{flex:1}
+.btn{padding:8px 16px;font-size:12px;font-weight:600;font-family:'Inter',sans-serif;border:none;border-radius:6px;cursor:pointer;transition:all .15s}
+.btn-primary{background:#0d1f35;color:#fff}.btn-primary:hover{background:#1a3050}
+.btn-danger{background:#fdf0f0;color:#e03b3b;border:1px solid #fecaca}.btn-danger:hover{background:#fee2e2}
+.btn-copy{background:#f0fdf4;color:#1a9e6a;border:1px solid #a7f3d0}
+.msg{font-size:11px;padding:8px 12px;border-radius:5px;margin:10px 0;display:none}
+.msg.show{display:block}
+.msg.ok{background:#f0fdf4;color:#1a9e6a;border:1px solid #a7f3d0}
+.msg.err{background:#fdf0f0;color:#e03b3b;border:1px solid #fecaca}
+.msg.info{background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe}
+.user-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f8f9fa;border:1px solid #dde2e8;border-radius:6px;margin-bottom:6px}
+.uname{font-size:12px;font-weight:600;font-family:'JetBrains Mono',monospace;flex:1}
+.env-box{background:#0d1f35;color:#a8d4e8;font-family:'JetBrains Mono',monospace;font-size:11px;padding:12px 14px;border-radius:6px;word-break:break-all;line-height:1.6;margin:10px 0;cursor:pointer;position:relative}
+.env-box:hover::after{content:'Click to copy';position:absolute;top:6px;right:8px;font-size:9px;background:rgba(255,255,255,.15);padding:2px 6px;border-radius:3px;font-family:'Inter',sans-serif}
+.divider{height:1px;background:#dde2e8;margin:20px 0}
+.step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start}
+.step-num{width:20px;height:20px;background:#0d1f35;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px}
+.tag{font-size:10px;padding:1px 6px;border-radius:3px;background:#e8f4f8;color:#1a8aab;font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="card">
+    <div class="logo">intel<span>X</span></div>
+    <div class="sub">User management tool — runs locally in your browser, no server needed</div>
+  </div>
+
+  <!-- Add user -->
+  <div class="card">
+    <h2>Add / remove users</h2>
+    <p>Users are stored as a JSON array in your Netlify environment variable <span class="tag">INTELX_USERS</span>. Use this tool to build the value, then paste it into Netlify.</p>
+
+    <div class="row">
+      <div class="field"><label>Username</label><input type="text" id="new-user" placeholder="e.g. farouk" autocomplete="off"></div>
+      <div class="field"><label>Password</label><input type="password" id="new-pass" placeholder="Min. 6 characters" onkeydown="if(event.key==='Enter')addUser()"></div>
+    </div>
+    <button class="btn btn-primary" onclick="addUser()">Add user</button>
+    <div class="msg" id="add-msg"></div>
+
+    <div class="divider"></div>
+
+    <h2 style="margin-bottom:8px">Current users <span id="count" style="font-weight:400;color:#8a96a3"></span></h2>
+    <div id="user-list"><div style="font-size:12px;color:#8a96a3;padding:8px 0">No users yet.</div></div>
+  </div>
+
+  <!-- Output -->
+  <div class="card">
+    <h2>INTELX_USERS value</h2>
+    <p>Copy this entire value and paste it into Netlify → Site configuration → Environment variables → <span class="tag">INTELX_USERS</span>.</p>
+    <div class="env-box" id="env-output" onclick="copyEnv()">[]</div>
+    <button class="btn btn-copy" onclick="copyEnv()">📋 Copy to clipboard</button>
+    <div class="msg" id="copy-msg"></div>
+
+    <div class="divider"></div>
+
+    <h2 style="margin-bottom:12px">How to deploy changes</h2>
+    <div class="step"><div class="step-num">1</div><p style="margin:0">Copy the value above</p></div>
+    <div class="step"><div class="step-num">2</div><p style="margin:0">Go to <strong>Netlify → your site → Site configuration → Environment variables</strong></p></div>
+    <div class="step"><div class="step-num">3</div><p style="margin:0">Find or create <span class="tag">INTELX_USERS</span> and paste the value</p></div>
+    <div class="step"><div class="step-num">4</div><p style="margin:0">Click <strong>Save</strong> — changes take effect on the next deploy. Trigger one via <strong>Deploys → Trigger deploy</strong>.</p></div>
+  </div>
+
+  <div style="text-align:center;font-size:11px;color:#8a96a3;margin-top:8px">
+    This page runs entirely in your browser. No data is sent anywhere. <a href="/" style="color:#1a8aab">← Back to intelX</a>
+  </div>
+</div>
+
+<script>
+// All crypto runs locally in the browser — nothing is sent to any server
+let users = JSON.parse(localStorage.getItem('intelx_admin_users') || '[]');
+
+async function sha256hmac(message, secret) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(message));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// We need the SESSION_SECRET to hash passwords the same way the server does.
+// Ask for it once and store locally.
+let sessionSecret = localStorage.getItem('intelx_secret') || '';
+if (!sessionSecret) {
+  sessionSecret = prompt('Enter your SESSION_SECRET (the same value set in Netlify env vars).\n\nThis is needed to hash passwords correctly.\nIt will be saved in your browser localStorage.');
+  if (sessionSecret) localStorage.setItem('intelx_secret', sessionSecret.trim());
+  sessionSecret = (sessionSecret || '').trim();
+}
+
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text; el.className = 'msg show ' + type;
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+async function addUser() {
+  const username = (document.getElementById('new-user').value || '').trim().toLowerCase();
+  const password = (document.getElementById('new-pass').value || '').trim();
+  if (!username || !/^[a-z0-9_-]{2,}$/.test(username)) { showMsg('add-msg','Invalid username (min 2 chars, a-z 0-9 _ -)','err'); return; }
+  if (password.length < 6) { showMsg('add-msg','Password must be at least 6 characters','err'); return; }
+  if (users.find(u => u.u === username)) { showMsg('add-msg',`User "${username}" already exists`,'err'); return; }
+  if (!sessionSecret) { showMsg('add-msg','SESSION_SECRET not set — reload page to enter it','err'); return; }
+  const h = await sha256hmac(password, sessionSecret);
+  users.push({ u: username, h, c: new Date().toISOString() });
+  save();
+  document.getElementById('new-user').value = '';
+  document.getElementById('new-pass').value = '';
+  showMsg('add-msg', `User "${username}" added`, 'ok');
+}
+
+function deleteUser(username) {
+  if (!confirm(`Delete user "${username}"?`)) return;
+  users = users.filter(u => u.u !== username);
+  save();
+}
+
+function save() {
+  localStorage.setItem('intelx_admin_users', JSON.stringify(users));
+  render();
+}
+
+function render() {
+  document.getElementById('count').textContent = `(${users.length})`;
+  const list = document.getElementById('user-list');
+  if (!users.length) { list.innerHTML = '<div style="font-size:12px;color:#8a96a3;padding:8px 0">No users yet.</div>'; }
+  else list.innerHTML = users.map(u => `
+    <div class="user-row">
+      <span class="uname">${u.u}</span>
+      <span style="font-size:10px;color:#8a96a3">${u.c ? new Date(u.c).toLocaleDateString() : ''}</span>
+      <button class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="deleteUser('${u.u}')">Remove</button>
+    </div>`).join('');
+
+  // Update env output — omit the 'c' field to keep it clean
+  const envVal = JSON.stringify(users.map(u => ({ u: u.u, h: u.h })));
+  document.getElementById('env-output').textContent = envVal;
+}
+
+async function copyEnv() {
+  const val = document.getElementById('env-output').textContent;
+  try {
+    await navigator.clipboard.writeText(val);
+    showMsg('copy-msg', '✓ Copied to clipboard', 'ok');
+  } catch (e) {
+    showMsg('copy-msg', 'Copy failed — select and copy manually', 'err');
+  }
+}
+
+render();
+</script>
+</body>
+</html>
